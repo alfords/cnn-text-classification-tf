@@ -4,6 +4,15 @@ import itertools
 from collections import Counter
 
 
+def clean_str_sst(string):
+    """
+    Tokenization/string cleaning for the SST dataset
+    """
+    string = re.sub(r"[^A-Za-z0-9(),!?\'\`]", " ", string)
+    string = re.sub(r"\s{2,}", " ", string)
+    return string.strip().lower()
+
+
 def clean_str(string):
     """
     Tokenization/string cleaning for all datasets except for SST.
@@ -23,6 +32,43 @@ def clean_str(string):
     string = re.sub(r"\?", " \? ", string)
     string = re.sub(r"\s{2,}", " ", string)
     return string.strip().lower()
+
+
+def load_SST_2(train_file, dev_file, test_file):
+    '''
+    :param train_file:
+    :param dev_file:
+    :param test_file:
+    :return:
+    '''
+    train_data = list(open(train_file, 'r').readlines())
+    dev_data = list(open(dev_file, 'r').readlines())
+    test_data = list(open(test_file, 'r').readlines())
+    positive_train_data, negative_train_data = _extract_label_and_data(train_data)
+    positive_dev_data, negative_dev_data = _extract_label_and_data(dev_data)
+    positive_test_data, negative_test_data = _extract_label_and_data(test_data)
+    # Data
+    x_train = positive_train_data + negative_train_data
+    x_train = [clean_str_sst(sent) for sent in x_train]
+    x_dev = positive_dev_data + negative_dev_data
+    x_dev = [clean_str_sst(sent) for sent in x_dev]
+    x_test = positive_test_data + negative_test_data
+    x_test = [clean_str_sst(sent) for sent in x_test]
+    # Label
+    y_train = np.concatenate([[[0, 1] for _ in positive_train_data], [[1, 0] for _ in negative_train_data]], 0)
+    y_dev = np.concatenate([[[0, 1] for _ in positive_dev_data], [[1, 0] for _ in negative_dev_data]], 0)
+    y_test = np.concatenate([[[0, 1] for _ in positive_test_data], [[1, 0] for _ in negative_test_data]], 0)
+    return [x_train, y_train, x_dev, y_dev, x_test, y_test]
+
+
+def _extract_label_and_data(text):
+    positive_examples, negative_examples = [], []
+    for sentence in text:
+        if sentence[0] == '1':
+            positive_examples.append(sentence[1:].strip())
+        elif sentence[0] == '0':
+            negative_examples.append(sentence[1:].strip())
+    return positive_examples, negative_examples
 
 
 def load_data_and_labels(positive_data_file, negative_data_file):
@@ -63,3 +109,7 @@ def batch_iter(data, batch_size, num_epochs, shuffle=True):
             start_index = batch_num * batch_size
             end_index = min((batch_num + 1) * batch_size, data_size)
             yield shuffled_data[start_index:end_index]
+
+
+# if __name__ == '__main__':
+#     load_SST_2('./data/SST-2/sst2.train', './data/SST-2/sst2.dev', './data/SST-2/sst2.test')
