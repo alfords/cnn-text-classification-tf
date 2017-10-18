@@ -18,6 +18,7 @@ tf.flags.DEFINE_string("dev_data_file", "./data/SST-2/sst2.dev", "Data source fo
 tf.flags.DEFINE_string("test_data_file", "./data/SST-2/sst2.test", "Data source for the test data.")
 
 # Model Hyperparameters
+tf.flags.DEFINE_boolean("enable_word_embeddings", True, "Enable/disable the word embedding (default: True)")
 tf.flags.DEFINE_integer("embedding_dim", 128, "Dimensionality of character embedding (default: 128)")
 tf.flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated filter sizes (default: '3,4,5')")
 tf.flags.DEFINE_integer("num_filters", 128, "Number of filters per filter size (default: 128)")
@@ -51,12 +52,12 @@ x_train, y_train, x_dev, y_dev, x_test, y_test = data_helpers.load_SST_2(FLAGS.t
                                                                          FLAGS.dev_data_file,\
                                                                          FLAGS.test_data_file)
 # Build vocabulary
-x_text = x_train + x_dev
+x_text = x_train + x_dev + x_test
 max_document_length = max([len(x.split(" ")) for x in x_text])
 vocab_processor = learn.preprocessing.VocabularyProcessor(max_document_length)
 x = np.array(list(vocab_processor.fit_transform(x_text)))
 
-x_train, x_dev = x[:len(y_train)], x[len(y_train):]
+x_train, x_dev = x[:len(y_train)], x[len(y_train):len(y_train)+len(y_dev)]
 y_train, y_dev = np.array(y_train), np.array(y_dev)
 
 print("Vocabulary Size: {:d}".format(len(vocab_processor.vocabulary_)))

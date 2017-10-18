@@ -41,23 +41,25 @@ def load_SST_2(train_file, dev_file, test_file):
     :param test_file:
     :return:
     '''
-    train_data = list(open(train_file, 'r').readlines())
-    dev_data = list(open(dev_file, 'r').readlines())
-    test_data = list(open(test_file, 'r').readlines())
-    positive_train_data, negative_train_data = _extract_label_and_data(train_data)
-    positive_dev_data, negative_dev_data = _extract_label_and_data(dev_data)
-    positive_test_data, negative_test_data = _extract_label_and_data(test_data)
-    # Data
-    x_train = positive_train_data + negative_train_data
-    x_train = [clean_str_sst(sent) for sent in x_train]
-    x_dev = positive_dev_data + negative_dev_data
-    x_dev = [clean_str_sst(sent) for sent in x_dev]
-    x_test = positive_test_data + negative_test_data
-    x_test = [clean_str_sst(sent) for sent in x_test]
-    # Label
-    y_train = np.concatenate([[[0, 1] for _ in positive_train_data], [[1, 0] for _ in negative_train_data]], 0)
-    y_dev = np.concatenate([[[0, 1] for _ in positive_dev_data], [[1, 0] for _ in negative_dev_data]], 0)
-    y_test = np.concatenate([[[0, 1] for _ in positive_test_data], [[1, 0] for _ in negative_test_data]], 0)
+    x_train, y_train, x_dev, y_dev, x_test, y_test = None, None, None, None, None, None
+    if train_file:
+        train_data = list(open(train_file, 'r').readlines())
+        positive_train_data, negative_train_data = _extract_label_and_data(train_data)
+        x_train = positive_train_data + negative_train_data
+        x_train = [clean_str_sst(sent) for sent in x_train]
+        y_train = np.concatenate([[[0, 1] for _ in positive_train_data], [[1, 0] for _ in negative_train_data]], 0)
+    if dev_file:
+        dev_data = list(open(dev_file, 'r').readlines())
+        positive_dev_data, negative_dev_data = _extract_label_and_data(dev_data)
+        x_dev = positive_dev_data + negative_dev_data
+        x_dev = [clean_str_sst(sent) for sent in x_dev]
+        y_dev = np.concatenate([[[0, 1] for _ in positive_dev_data], [[1, 0] for _ in negative_dev_data]], 0)
+    if test_file:
+        test_data = list(open(test_file, 'r').readlines())
+        positive_test_data, negative_test_data = _extract_label_and_data(test_data)
+        x_test = positive_test_data + negative_test_data
+        x_test = [clean_str_sst(sent) for sent in x_test]
+        y_test = np.concatenate([[[0, 1] for _ in positive_test_data], [[1, 0] for _ in negative_test_data]], 0)
     return [x_train, y_train, x_dev, y_dev, x_test, y_test]
 
 
